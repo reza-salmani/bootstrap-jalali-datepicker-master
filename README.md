@@ -1,8 +1,8 @@
-# Bootstrap Datepicker v1.0 #
+# Bootstrap Datepicker v1.1 #
 
 A jQuery UI Datepicker widget with Twitter Bootstrap theme.  It's based on jQuery UI 1.9.1 and Twitter Bootstrap 2.1.1.
 
-this is an update for Rahman Mousavian for fixing persian leap-year like 1403 & 1408. use this with confidence 😉
+This is an Update for Rahman Mousavian's bootstrap-jalali-datepicker for fixing persian leap-year like 1403 & 1408. use this with confidence 😉
 
 ## Usage ##
 
