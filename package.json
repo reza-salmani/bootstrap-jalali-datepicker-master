@@ -1,0 +1,24 @@
+{
+  "name": "bootstrap-jalali-datepicker-updated-leapyears",
+  "version": "1.0.0",
+  "description": "this library is base on Rahman Mousavian jalaly calendar with update for fixing leap-years",
+  "main": "bootstrap-datepicker.fa.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reza-salmani/bootstrap-jalali-datepicker-master.git"
+  },
+  "keywords": [
+    "leap",
+    "years",
+    "jalali",
+    "calendar",
+    "javascript",
+    "jquery"
+  ],
+  "author": "Reza Salmani",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reza-salmani/bootstrap-jalali-datepicker-master/issues"
+  },
+  "homepage": "https://github.com/reza-salmani/bootstrap-jalali-datepicker-master#readme"
+}
