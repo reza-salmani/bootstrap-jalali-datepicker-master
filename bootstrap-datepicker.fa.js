@@ -5,7 +5,7 @@
  * 	Mahdi Hasheminezhad. email: hasheminezhad at gmail dot com (http://hasheminezhad.com)
  */
 function mod(a, b) {
-  return a - b * Math.floor(a / b);
+  return ((a % b) + b) % b;
 }
 /*
        JavaScript functions for the Fourmilab Calendar Converter
@@ -109,73 +109,88 @@ function jd_to_gregorian(jd) {
  *
  * @description it's changed by Reza.Salmani to manage special leap_year like 1403
  */
+var PERSIAN_EPOCH = 1948320.5;
 function leap_persian(year) {
   const leapYears = [1, 5, 9, 13, 17, 22, 26, 30];
   return leapYears.includes(year % 33);
 }
-function daysInMonth(year, month) {
-  if (month <= 6) {
-    return 31;
-  } else if (month <= 11) {
-    return 30;
-  } else {
-    // ماه ۱۲ (اسفند) - بررسی کبیسه بودن سال
-    return leap_persian(year) ? 30 : 29;
+function persian_year_days_since_epoch(year) {
+  const base = year - (year >= 0 ? 474 : 473);
+  const cycle = Math.floor(base / 2820);
+  const epyear = 474 + mod(base, 2820);
+  let leap_days = 0;
+  for (let i = 1; i < epyear; i++) {
+    if (leap_persian(i)) leap_days++;
   }
+  return (epyear - 1) * 365 + leap_days + cycle * 1029983;
 }
-var PERSIAN_EPOCH = 1948320.5;
-
 function persian_to_jd(year, month, day) {
-  var base = year - (year >= 0 ? 474 : 473);
-  var cycle = Math.floor(base / 2820);
-  var v = 474 + (base % 2820);
+  const day_in_month = (m, y) =>
+    m <= 6 ? 31 : m <= 11 ? 30 : leap_persian(y) ? 30 : 29;
 
-  var leap_years = Math.floor((v * 683) / 2820);
-
-  var days = day;
-  if (month <= 7) {
-    days += (month - 1) * 31;
-  } else {
-    days += 6 * 31 + (month - 7) * 30;
+  const days_from_epoch = persian_year_days_since_epoch(year);
+  let days_in_months = 0;
+  for (let m = 1; m < month; m++) {
+    days_in_months += day_in_month(m, year);
   }
-  days += leap_years + (v - 1) * 365 + cycle * 1029983 + (1948320.5 - 1);
-  return days;
+
+  return PERSIAN_EPOCH - 1 + days_from_epoch + days_in_months + (day - 1);
 }
+
 function jd_to_persian(jd) {
   jd = Math.floor(jd) + 0.5;
 
-  // تصحیح برای مبدأ تقویم شمسی
-  var base = jd - persian_to_jd(475, 1, 1);
-  var cycle = Math.floor(base / 1029983);
-  var rem = base % 1029983;
+  let guess = 1300;
+  while (persian_to_jd(guess + 1, 1, 1) <= jd) guess++;
 
-  // محاسبه سال در چرخه جاری با روش دقیق‌تر
-  var ycycle;
-  if (rem == 1029982) {
-    ycycle = 2820;
-  } else {
-    var years = Math.floor((2816 * rem + 1031337) / 1028522);
-    ycycle = years;
+  let days = jd - persian_to_jd(guess, 1, 1);
+  let month = 1;
+
+  while (true) {
+    const dim =
+      month <= 6 ? 31 : month <= 11 ? 30 : leap_persian(guess) ? 30 : 29;
+    if (days < dim) break;
+    days -= dim;
+    month++;
   }
 
-  var year = ycycle + 2820 * cycle + 474;
-  if (year <= 0) year--;
+  const day = days + 1;
+  return [guess, month, day];
+}
+function test_conversion(year, month, day) {
+  const jd = persian_to_jd(year, month, day);
+  const converted = jd_to_persian(jd);
+  const success =
+    year === converted[0] && month === converted[1] && day === converted[2];
 
-  // محاسبه ماه و روز
-  var days = jd - persian_to_jd(year, 1, 1) + 1;
-  var month, day;
-
-  if (days <= 186) {
-    month = Math.ceil(days / 31);
-    day = days % 31 || 31;
-  } else {
-    month = Math.ceil((days - 6) / 30);
-    day = (days - 6) % 30 || 30;
-  }
-
-  return [year, month, day];
+  console.log(
+    `Test: ${year}/${month}/${day} → JD: ${jd} → Converted: ${converted.join(
+      "/"
+    )} → ${success ? "✅ OK" : "❌ FAIL"}`
+  );
 }
 
+// تست تبدیل رفت و برگشت تاریخ‌ها:
+test_conversion(1403, 12, 30); // کبیسه - باید اوکی باشه
+test_conversion(1402, 12, 30); // غیرکبیسه - باید اوکی باشه
+test_conversion(1408, 12, 30); // کبیسه
+test_conversion(1399, 12, 30); // عادی
+test_conversion(1350, 7, 15); // تاریخ تصادفی
+test_conversion(1395, 12, 30); // کبیسه
+test_conversion(1391, 12, 30); // کبیسه
+test_conversion(1, 1, 1); // شروع دوره
+
+// مقایسه دقیق‌تر:
+function test_leap(year) {
+  console.log(
+    `Year ${year} is ${leap_persian(year) ? "✅ leap" : "❌ not leap"}`
+  );
+}
+
+test_leap(1403); // باید leap باشه
+test_leap(1408); // باید leap باشه
+test_leap(1399); // باید leap باشه
+test_leap(1398); // نباید باشه
 //#endregion
 
 function JalaliDate(p0, p1, p2) {
