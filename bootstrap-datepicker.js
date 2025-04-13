@@ -1607,10 +1607,8 @@
       this._updateAlternate(inst);
       var onSelect = this._get(inst, "onSelect");
       if (onSelect)
-        onSelect.apply(inst.input ? inst.input[0] : null, [
-          dateStr,
-          inst,
-        ]); // trigger custom callback
+        onSelect.apply(inst.input ? inst.input[0] : null, [dateStr, inst]);
+      // trigger custom callback
       else if (inst.input) inst.input.trigger("change"); // fire the change event
       if (inst.inline) this._updateDatepicker(inst);
       else {
@@ -2478,6 +2476,8 @@
           }
           calender += thead + "</tr></thead><tbody>";
           var daysInMonth = this._getDaysInMonth(drawYear, drawMonth);
+          console.log(daysInMonth);
+
           if (drawYear == inst.selectedYear && drawMonth == inst.selectedMonth)
             inst.selectedDay = Math.min(inst.selectedDay, daysInMonth);
           var leadDays =
@@ -2489,6 +2489,7 @@
               : curRows
             : curRows; //If multiple months, use the higher number of rows (see #7043)
           this.maxRows = numRows;
+
           var printDate = this._daylightSavingAdjust(
             new this.CDate(drawYear, drawMonth, 1 - leadDays)
           );

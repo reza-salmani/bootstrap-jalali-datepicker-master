@@ -15,6 +15,37 @@ function mod(a, b) {
 
                 This program is in the public domain.
 */
+
+//#region islamic convertor
+function leap_islamic(year) {
+  return (year * 11 + 14) % 30 < 11;
+}
+var ISLAMIC_EPOCH = 1948439.5;
+function islamic_to_jd(year, month, day) {
+  return (
+    day +
+    Math.ceil(29.5 * (month - 1)) +
+    (year - 1) * 354 +
+    Math.floor((3 + 11 * year) / 30) +
+    ISLAMIC_EPOCH -
+    1
+  );
+}
+function jd_to_islamic(jd) {
+  var year, month, day;
+
+  jd = Math.floor(jd) + 0.5;
+  year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631);
+  month = Math.min(
+    12,
+    Math.ceil((jd - (29 + islamic_to_jd(year, 1, 1))) / 29.5) + 1
+  );
+  day = jd - islamic_to_jd(year, month, 1) + 1;
+  return new Array(year, month, day);
+}
+//#endregion
+
+//#region gregorian convertor
 function leap_gregorian(year) {
   return year % 4 == 0 && !(year % 100 == 0 && year % 400 != 0);
 }
@@ -70,80 +101,83 @@ function jd_to_gregorian(jd) {
 
   return new Array(year, month, day);
 }
-function leap_islamic(year) {
-  return (year * 11 + 14) % 30 < 11;
-}
-var ISLAMIC_EPOCH = 1948439.5;
-function islamic_to_jd(year, month, day) {
-  return (
-    day +
-    Math.ceil(29.5 * (month - 1)) +
-    (year - 1) * 354 +
-    Math.floor((3 + 11 * year) / 30) +
-    ISLAMIC_EPOCH -
-    1
-  );
-}
-function jd_to_islamic(jd) {
-  var year, month, day;
+//#endregion
 
-  jd = Math.floor(jd) + 0.5;
-  year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631);
-  month = Math.min(
-    12,
-    Math.ceil((jd - (29 + islamic_to_jd(year, 1, 1))) / 29.5) + 1
-  );
-  day = jd - islamic_to_jd(year, month, 1) + 1;
-  return new Array(year, month, day);
-}
-
+//#region persian convertor
+/**
+ * this function calculate leap_years for persian calendar.
+ *
+ * @description it's changed by Reza.Salmani to manage special leap_year like 1403
+ */
 function leap_persian(year) {
   const leapYears = [1, 5, 9, 13, 17, 22, 26, 30];
   return leapYears.includes(year % 33);
 }
+function daysInMonth(year, month) {
+  if (month <= 6) {
+    return 31;
+  } else if (month <= 11) {
+    return 30;
+  } else {
+    // ماه ۱۲ (اسفند) - بررسی کبیسه بودن سال
+    return leap_persian(year) ? 30 : 29;
+  }
+}
 var PERSIAN_EPOCH = 1948320.5;
+
 function persian_to_jd(year, month, day) {
-  var epbase, epyear;
+  var base = year - (year >= 0 ? 474 : 473);
+  var cycle = Math.floor(base / 2820);
+  var v = 474 + (base % 2820);
 
-  epbase = year - (year >= 0 ? 474 : 473);
-  epyear = 474 + mod(epbase, 2820);
+  var leap_years = Math.floor((v * 683) / 2820);
 
-  return (
-    day +
-    (month <= 7 ? (month - 1) * 31 : (month - 1) * 30 + 6) +
-    Math.floor((epyear * 682 - 110) / 2816) +
-    (epyear - 1) * 365 +
-    Math.floor(epbase / 2820) * 1029983 +
-    PERSIAN_EPOCH
-    // this is changed PERSIAN_EPOCH -1 => PERSIAN_EPOCH
-  );
+  var days = day;
+  if (month <= 7) {
+    days += (month - 1) * 31;
+  } else {
+    days += 6 * 31 + (month - 7) * 30;
+  }
+  days += leap_years + (v - 1) * 365 + cycle * 1029983 + (1948320.5 - 1);
+  return days;
 }
 function jd_to_persian(jd) {
-  var year, month, day, depoch, cycle, cyear, ycycle, aux1, aux2, yday;
-
   jd = Math.floor(jd) + 0.5;
 
-  depoch = jd - persian_to_jd(475, 1, 1);
-  cycle = Math.floor(depoch / 1029983);
-  cyear = mod(depoch, 1029983);
-  if (cyear == 1029982) {
+  // تصحیح برای مبدأ تقویم شمسی
+  var base = jd - persian_to_jd(475, 1, 1);
+  var cycle = Math.floor(base / 1029983);
+  var rem = base % 1029983;
+
+  // محاسبه سال در چرخه جاری با روش دقیق‌تر
+  var ycycle;
+  if (rem == 1029982) {
     ycycle = 2820;
   } else {
-    aux1 = Math.floor(cyear / 366);
-    aux2 = mod(cyear, 366);
-    ycycle =
-      Math.floor((2134 * aux1 + 2816 * aux2 + 2815) / 1028522) + aux1 + 1;
+    var years = Math.floor((2816 * rem + 1031337) / 1028522);
+    ycycle = years;
   }
-  year = ycycle + 2820 * cycle + 474;
-  if (year <= 0) {
-    year--;
-  }
-  yday = jd - persian_to_jd(year, 1, 1) + 1;
-  month = yday <= 186 ? Math.ceil(yday / 31) : Math.ceil((yday - 6) / 30);
-  day = jd - persian_to_jd(year, month, 1) + 1;
 
-  return new Array(year, month, day);
+  var year = ycycle + 2820 * cycle + 474;
+  if (year <= 0) year--;
+
+  // محاسبه ماه و روز
+  var days = jd - persian_to_jd(year, 1, 1) + 1;
+  var month, day;
+
+  if (days <= 186) {
+    month = Math.ceil(days / 31);
+    day = days % 31 || 31;
+  } else {
+    month = Math.ceil((days - 6) / 30);
+    day = (days - 6) % 30 || 30;
+  }
+
+  return [year, month, day];
 }
+
+//#endregion
+
 function JalaliDate(p0, p1, p2) {
   var gregorianDate;
   var jalaliDate;
@@ -169,6 +203,7 @@ function JalaliDate(p0, p1, p2) {
       persian_to_jd(d[0], d[1] + 1, d[2]) - adjustDay
     );
     gregorian[1]--;
+
     return gregorian;
   }
 
