@@ -4,6 +4,8 @@ A jQuery UI Datepicker widget with Twitter Bootstrap theme.  It's based on jQuer
 
 See demo page for more examples.
 
+this is an update for Rahman Mousavian for fixing persian leap-year lik 1403 & 1408. use this with confidence 😉
+
 ## Usage ##
 
     <input type="text" name="date" class="datepicker" />
