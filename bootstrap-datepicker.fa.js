@@ -4,6 +4,11 @@
  *  Using jQuery Datepicker (Jalali Calendar) By:
  * 	Mahdi Hasheminezhad. email: hasheminezhad at gmail dot com (http://hasheminezhad.com)
  */
+
+/**
+ * this file changed by Reza.Salmani to calculation persian leap years currectly
+ * email : r.salmani.programming@gmail.com
+ */
 function mod(a, b) {
   return ((a % b) + b) % b;
 }
@@ -104,16 +109,12 @@ function jd_to_gregorian(jd) {
 //#endregion
 
 //#region persian convertor
-/**
- * this function calculate leap_years for persian calendar.
- *
- * @description it's changed by Reza.Salmani to manage special leap_year like 1403
- */
 var PERSIAN_EPOCH = 1948320.5;
 function leap_persian(year) {
   const leapYears = [1, 5, 9, 13, 17, 22, 26, 30];
   return leapYears.includes(year % 33);
 }
+
 function persian_year_days_since_epoch(year) {
   const base = year - (year >= 0 ? 474 : 473);
   const cycle = Math.floor(base / 2820);
@@ -124,6 +125,7 @@ function persian_year_days_since_epoch(year) {
   }
   return (epyear - 1) * 365 + leap_days + cycle * 1029983;
 }
+
 function persian_to_jd(year, month, day) {
   const day_in_month = (m, y) =>
     m <= 6 ? 31 : m <= 11 ? 30 : leap_persian(y) ? 30 : 29;
@@ -137,26 +139,33 @@ function persian_to_jd(year, month, day) {
   return PERSIAN_EPOCH - 1 + days_from_epoch + days_in_months + (day - 1);
 }
 
+function estimate_persian_year(jd) {
+  const daysSinceEpoch = jd - persian_to_jd(475, 1, 1);
+  const approxYear = 475 + Math.floor(daysSinceEpoch / 365.24219858156);
+  return approxYear;
+}
+
 function jd_to_persian(jd) {
   jd = Math.floor(jd) + 0.5;
-
-  let guess = 1300;
-  while (persian_to_jd(guess + 1, 1, 1) <= jd) guess++;
-
-  let days = jd - persian_to_jd(guess, 1, 1);
+  let year = estimate_persian_year(jd);
+  while (persian_to_jd(year + 1, 1, 1) <= jd) year++;
+  while (persian_to_jd(year, 1, 1) > jd) year--;
+  const dayOfYear = jd - persian_to_jd(year, 1, 1);
   let month = 1;
+  let remainingDays = dayOfYear;
+  for (let m = 1; m <= 12; m++) {
+    const dim = m <= 6 ? 31 : m <= 11 ? 30 : leap_persian(year) ? 30 : 29;
 
-  while (true) {
-    const dim =
-      month <= 6 ? 31 : month <= 11 ? 30 : leap_persian(guess) ? 30 : 29;
-    if (days < dim) break;
-    days -= dim;
-    month++;
+    if (remainingDays < dim) {
+      month = m;
+      break;
+    }
+    remainingDays -= dim;
   }
-
-  const day = days + 1;
-  return [guess, month, day];
+  const day = remainingDays + 1;
+  return [year, month, day];
 }
+
 function test_conversion(year, month, day) {
   const jd = persian_to_jd(year, month, day);
   const converted = jd_to_persian(jd);
@@ -191,6 +200,7 @@ test_leap(1403); // باید leap باشه
 test_leap(1408); // باید leap باشه
 test_leap(1399); // باید leap باشه
 test_leap(1398); // نباید باشه
+test_leap(1405); // نباید باشه
 //#endregion
 
 function JalaliDate(p0, p1, p2) {
