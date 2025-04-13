@@ -166,42 +166,42 @@ function jd_to_persian(jd) {
   return [year, month, day];
 }
 
-function test_conversion(year, month, day) {
-  const jd = persian_to_jd(year, month, day);
-  const converted = jd_to_persian(jd);
-  const success =
-    year === converted[0] && month === converted[1] && day === converted[2];
+// function test_conversion(year, month, day) {
+//   const jd = persian_to_jd(year, month, day);
+//   const converted = jd_to_persian(jd);
+//   const success =
+//     year === converted[0] && month === converted[1] && day === converted[2];
 
-  console.log(
-    `Test: ${year}/${month}/${day} → JD: ${jd} → Converted: ${converted.join(
-      "/"
-    )} → ${success ? "✅ OK" : "❌ FAIL"}`
-  );
-}
+//   console.log(
+//     `Test: ${year}/${month}/${day} → JD: ${jd} → Converted: ${converted.join(
+//       "/"
+//     )} → ${success ? "✅ OK" : "❌ FAIL"}`
+//   );
+// }
 
-// تست تبدیل رفت و برگشت تاریخ‌ها:
-test_conversion(1403, 12, 30); // کبیسه - باید اوکی باشه
-test_conversion(1402, 12, 30); // غیرکبیسه - باید اوکی باشه
-test_conversion(1408, 12, 30); // کبیسه
-test_conversion(1399, 12, 30); // عادی
-test_conversion(1350, 7, 15); // تاریخ تصادفی
-test_conversion(1395, 12, 30); // کبیسه
-test_conversion(1391, 12, 30); // کبیسه
-test_conversion(1, 1, 1); // شروع دوره
+// // تست تبدیل رفت و برگشت تاریخ‌ها:
+// test_conversion(1403, 12, 30); // کبیسه - باید اوکی باشه
+// test_conversion(1402, 12, 30); // غیرکبیسه - باید اوکی باشه
+// test_conversion(1408, 12, 30); // کبیسه
+// test_conversion(1399, 12, 30); // عادی
+// test_conversion(1350, 7, 15); // تاریخ تصادفی
+// test_conversion(1395, 12, 30); // کبیسه
+// test_conversion(1391, 12, 30); // کبیسه
+// test_conversion(1, 1, 1); // شروع دوره
 
-// مقایسه دقیق‌تر:
-function test_leap(year) {
-  console.log(
-    `Year ${year} is ${leap_persian(year) ? "✅ leap" : "❌ not leap"}`
-  );
-}
+// // مقایسه دقیق‌تر:
+// function test_leap(year) {
+//   console.log(
+//     `Year ${year} is ${leap_persian(year) ? "✅ leap" : "❌ not leap"}`
+//   );
+// }
 
-test_leap(1403); // باید leap باشه
-test_leap(1408); // باید leap باشه
-test_leap(1399); // باید leap باشه
-test_leap(1398); // نباید باشه
-test_leap(1405); // نباید باشه
-//#endregion
+// test_leap(1403); // باید leap باشه
+// test_leap(1408); // باید leap باشه
+// test_leap(1399); // باید leap باشه
+// test_leap(1398); // نباید باشه
+// test_leap(1405); // نباید باشه
+// //#endregion
 
 function JalaliDate(p0, p1, p2) {
   var gregorianDate;
