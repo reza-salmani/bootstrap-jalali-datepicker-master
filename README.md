@@ -1,4 +1,4 @@
-# Bootstrap Datepicker v1.1 #
+# Bootstrap Datepicker Persian Leap Year v1.1 #
 
 A jQuery UI Datepicker widget with Twitter Bootstrap theme.  It's based on jQuery UI 1.9.1 and Twitter Bootstrap 2.1.1.
 
